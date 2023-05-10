@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-async function copyDirectory() {
+async function copyDir() {
   const srcDirectory = path.join(__dirname, 'files');
   const copyDirectory = path.join(__dirname, 'files-copy');
 
@@ -15,18 +15,25 @@ async function copyDirectory() {
 
   async function makeCopy(file) {
     const srcFile = path.join(srcDirectory, file);
-    const newFile = path.join(copyDirectory, file);
-    await fs.copyFile(srcFile, newFile);
+    const copyFile = path.join(copyDirectory, file);
+    await fs.copyFile(srcFile, copyFile);
+  }
+
+   async function removeCopy(file) {
+    const copyFile = path.join(copyDirectory, file);
+    await fs.unlink(copyFile);
   }
 
   await Promise.all(files.map(makeCopy));
 
-  fs.watch(srcDirectory, (event, filename) => {
+  fs.watch(srcDirectory, async (event, filename) => {
     if (event === 'change') {
       makeCopy(filename);
+    } else if (event === 'unlink') {
+      await removeCopy(filename);
     }
   });
 }
 
-copyDirectory();
+copyDir();
 
